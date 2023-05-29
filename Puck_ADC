@@ -1,0 +1,6 @@
+var w = new Waveform(128);
+w.on("finish", function(buf) {
+  for (var i in buf)
+    console.log(buf[i]);
+});
+w.startInput(D2,1000,{repeat:false});
