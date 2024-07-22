@@ -12,8 +12,8 @@
 */
 #include <M5Core2.h>
 
-const int DATASIZE = 25;
-const int COEFS = 25;
+const int DATASIZE = 51;
+const int COEFS = 51;
 
 int sensorPin = 36;   // select the input pin for the potentiometer
 int ledPin = 13;      // select the pin for the LED
@@ -23,12 +23,121 @@ int i, j;
 int x[DATASIZE];
 
 int k[COEFS];
-int y;
+int y, y_re, y_im, ampl;
 int t;
 
 const int LINESIZE = 320;
 int ys[LINESIZE];
 
+int k_re[COEFS] = {
+0  ,
+-405  ,
+-1052  ,
+-731  ,
+2874  ,
+9770  ,
+11096  ,
+-10897  ,
+-60568  ,
+-89956  ,
+0  ,
+247797  ,
+459594  ,
+227778  ,
+-638911  ,
+-1549691  ,
+-1255504  ,
+879564  ,
+3487452  ,
+3694939  ,
+0  ,
+-5179601  ,
+-6853084  ,
+-2422894  ,
+4848127  ,
+8388606  ,
+4848127  ,
+-2422894  ,
+-6853084  ,
+-5179601  ,
+0  ,
+3694939  ,
+3487452  ,
+879564  ,
+-1255504  ,
+-1549691  ,
+-638911  ,
+227778  ,
+459594  ,
+247797  ,
+0  ,
+-89956  ,
+-60568  ,
+-10897  ,
+11096  ,
+9770  ,
+2874  ,
+-731  ,
+-1052  ,
+-405  ,
+0  
+};
+
+
+int k_im[COEFS] = {
+219  ,
+294  ,
+-342  ,
+-2249  ,
+-3955  ,
+0  ,
+15273  ,
+33538  ,
+19680  ,
+-65357  ,
+-187689  ,
+-180035  ,
+149331  ,
+701029  ,
+879385  ,
+0  ,
+-1728053  ,
+-2707020  ,
+-1133142  ,
+2684531  ,
+5499568  ,
+3763200  ,
+-2226702  ,
+-7456900  ,
+-6672875  ,
+0  ,
+6672875  ,
+7456900  ,
+2226702  ,
+-3763200  ,
+-5499568  ,
+-2684531  ,
+1133142  ,
+2707020  ,
+1728053  ,
+0  ,
+-879385  ,
+-701029  ,
+-149331  ,
+180035  ,
+187689  ,
+65357  ,
+-19680  ,
+-33538  ,
+-15273  ,
+0  ,
+3955  ,
+2249  ,
+342  ,
+-294  ,
+-219  
+
+};
 
 unsigned int time_now;
 
@@ -62,6 +171,7 @@ void FillKoefs()
 
 void ReadADC()
 {
+  double xd, yd;
   time_now = micros();
   for (i = 0; i < DATASIZE; i++)
   {
@@ -70,13 +180,19 @@ void ReadADC()
     x[i] = analogRead(sensorPin);
   }
 
-    y = 0;
+    y_re = 0;
+    y_im = 0;
       for (j = 0; j < COEFS; j++) 
       {
-        y += x[j]*k[j];
+        y_re += x[j]*k_re[j];
+        y_im += x[j]*k_im[j];
       }
 
-    Serial.println(y);
+    xd = y_re;
+    yd = y_im;
+    ampl = round(sqrt(xd*xd + yd*yd));  
+
+    Serial.println(ampl);
 
 }
 
@@ -112,7 +228,7 @@ void loop() {
 
     M5.Lcd.drawPixel(t, 230 - ys[t], BLACK);
     
-    y = y * scale / 4096 / COEFS;
+    y = ampl / 1000;
     if (y > 200) y = 200;
 
     (y == 200) ? M5.Lcd.drawPixel(t, 230 - y, YELLOW) : M5.Lcd.drawPixel(t, 230 - y, GREEN);
